@@ -148,10 +148,7 @@ module.exports = async function Procuraduria(start = 0) {
 			timeout: 10000
 		});
 		console.log(Tab.url());
-		ScanTab({
-			Tab,
-			ranges,
-		});
+		return ScanTab({ Tab, ranges, });
 	} catch (error) {
 		await Browser.close();
 		return Procuraduria(step);
