@@ -114,17 +114,15 @@ async function ScanTab({ Tab, ranges:[min,max], CC, response}){
     }
 }
 
-module.exports = async function Procuraduria(){
+module.exports = async function Procuraduria(start=0){
 	const urlPage = ([
 		"https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes",
 		"https://apps.procuraduria.gov.co/webcert/Certificado.aspx?t=dAylAkFT/gSkkvpDoI89aORiq2C8LI3z9uHAnBFaF08/32nPrGQhH4HhIkyJHgMD30HMssetl++9IEpDNKzjND4pdXe1O32FMNcfM+GGb6NipvVlkwZR+ZjqHUuiB4weW8T9vSbEQL83gQVd8FjpjcqL5XBvjk89PEX8tf3eHevJgIDWDAm6iWRPb4HhiOqcXmsk2ZIc7yC+GyawwedNX5gP8L9zSe+C&tpo=1",
 	]).sort(()=>Math.random() - 0.5)[0];
-    
     const params = process.argv.slice(2);
-    const step = (params[0]-1) || 0;
+    const step = (params[0]-1) || start || 0;
     const max = 100000;
     const ranges = [ step===0?10:(step*max)+1, (step+1)*max, ];
-    
     console.log("[Launch Browser]");
     const Browser = await puppeteer.launch({
         headless: true,
@@ -139,9 +137,14 @@ module.exports = async function Procuraduria(){
             '--disable-features=IsolateOrigins,site-per-process',
             '--user-agent="'+(new userAgent()).toString()+'"',
         ]
-    });
+	});
 	const Tab = await Browser.newPage();
-	console.log("[Loading Page]");
-	await Tab.goto(urlPage, {waitUntil:'load', timeout:80000});
-	ScanTab({ Tab, ranges, });
+	try {
+		console.log("[Loading Page]");
+		await Tab.goto(urlPage, {waitUntil:'load', timeout:80000});
+		ScanTab({ Tab, ranges, });
+	} catch (error) {
+		await Browser.close();
+		return Procuraduria(start);
+	}
 };
