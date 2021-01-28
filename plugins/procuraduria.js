@@ -113,11 +113,6 @@ async function ScanTab({ Tab, ranges:[min,max], CC, response}){
     }
 }
 
-
-
-
-
-
 module.exports = async function Procuraduria(){
 	const urlPage = "https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes";
     
