@@ -36,7 +36,7 @@ const Cedula = {
 
 async function ScanTab(Tab, [min, max], CC=null){
 	console.clear();
-	console.log(`[Scaneando] [${min} - ${max}]`);
+	console.log(`[${CC?'Scaneando':'Iniciando'}]`, CC?`: ${CC}`:'');
 	try {
 		const Page = (await Tab.frames()).find(frame=>frame.url().includes('apps.procuraduria.gov.co'));
 		await Page.waitForSelector('#ddlTipoID', {timeout:60000});
