@@ -141,6 +141,7 @@ module.exports = async function Procuraduria(start=0){
 	const Tab = await Browser.newPage();
 	try {
 		console.log("[Loading Page]");
+		console.log(Tab.url());
 		await Tab.goto(urlPage, {waitUntil:'load', timeout:80000});
 		ScanTab({ Tab, ranges, });
 	} catch (error) {
