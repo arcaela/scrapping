@@ -90,7 +90,7 @@ async function ScanTab({ Tab, ranges:[min,max], CC, response}){
 			const data = document.querySelector('.datosConsultado');
 			const error = document.querySelector('#ValidationSummary1');
 			return (data && data.innerText.match(`mero ${cc}.`)) || (error && error.innerText);
-		}, {timeout:3600000});
+		}, {timeout:20000});
 		const Client = await Page.evaluate(()=>{
 			const names = [];
 			const cc = document.querySelector('#txtNumID').value;
