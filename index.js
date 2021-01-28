@@ -1,6 +1,6 @@
 const Procuraduria = require('./plugins/procuraduria');
 
 
-module.exports = async ()=>{
+module.exports = (async ()=>{
 	Procuraduria();
-};
+})();
