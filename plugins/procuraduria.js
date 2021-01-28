@@ -25,19 +25,17 @@ const Cedula = {
 		return CC?(CC===min?CC+1:(CC<max?CC:null)):min;
 	},
 	async add(CC, names){
-		const doc = this.collection.doc(`CC_${CC}`);
-		await doc.set({
+		return this.collection.doc(`CC_${CC}`)
+		.set({
 			CC,
 			name:Array.isArray(names)?names.slice(0, -2).join(' '):'error',
 			lastname:Array.isArray(names)?names.slice(-2).join(' '):'error',
-		});
-		console.log('[ADDED]', CC);
-		return CC;
+		}).then(()=>console.log('[ADDED]', CC))
 	},
 };
 
 
-async function ScanTab(Tab, [min, max], CC=null, response=null){
+async function ScanTab({ Tab, ranges:[min,max], CC, response}){
 	console.clear();
 	console.log(`[${CC?'Scaneando':'Iniciando'}]`, CC?`: ${CC}`:'');
 	try {
@@ -50,7 +48,7 @@ async function ScanTab(Tab, [min, max], CC=null, response=null){
 
 		if(!response){
 			console.log(`[Solving Captcha]`);
-			let response = await Page.evaluate(()=>document.querySelector('#txtRespuestaPregunta').value.trim());
+			response = await Page.evaluate(()=>document.querySelector('#txtRespuestaPregunta').value.trim());
 			const question = await Page.evaluate(()=>document.querySelector('#lblPregunta').innerText.toLowerCase());
 		    console.log(`[Question]: `, question);
             if(question.match(/cuanto es \d+ [\-\+\*\x\+] \d+/gi))
@@ -76,13 +74,15 @@ async function ScanTab(Tab, [min, max], CC=null, response=null){
 			console.log(`#############################`);
 		}
 
-		CC = CC || await Cedula.getCurrent([min, max]);
-		if(!CC) return ScanTab(...arguments);
+		if(!CC){
+			CC = await Cedula.getCurrent([min, max]);
+			if(!CC) return ScanTab(...arguments);
+		}
+
 		await Page.evaluate((CC)=>{
 			document.querySelector('#txtNumID').value = CC;
 			return document.querySelector('#btnConsultar').click();
 		}, CC);
-		
 		console.log("[Waiting Response]");
 		await Page.waitForFunction(()=>{
 			const cc = document.querySelector('#txtNumID').value;
@@ -103,7 +103,7 @@ async function ScanTab(Tab, [min, max], CC=null, response=null){
 		console.log("[Client]: ", Client);
 		Cedula.add(CC, Client);
 		await sleep(300);
-        ScanTab(Tab, [min, max], (CC+1), response);
+        ScanTab({Tab, ranges:[min, max], CC:(CC+1), response});
 	} catch (error) {
 		console.clear();
 		console.log(error);
@@ -144,5 +144,5 @@ module.exports = async function Procuraduria(){
 	const Tab = await Browser.newPage();
 	console.log("[Loading Page]");
 	await Tab.goto(urlPage, {waitUntil:'load', timeout:80000});
-	ScanTab(Tab, ranges);
+	ScanTab({ Tab, ranges, });
 };
