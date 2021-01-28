@@ -146,6 +146,6 @@ module.exports = async function Procuraduria(start=0){
 		ScanTab({ Tab, ranges, });
 	} catch (error) {
 		await Browser.close();
-		return Procuraduria(start);
+		return Procuraduria(step);
 	}
 };
