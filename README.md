@@ -1,2 +1,0 @@
-# scrapping
-Scrapping Registraduría
