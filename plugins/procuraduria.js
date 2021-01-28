@@ -48,7 +48,7 @@ async function ScanTab({ Tab, ranges: [min, max], CC, response }) {
 	await Page.waitForFunction(() => {
 		let c = document.querySelector('#ddlTipoID');
 		return !!(c && (c.value = 1));
-	}, { timeout: 60000 });
+	}, { timeout: 30000 });
 
 	if (!response) {
 		console.log(`[Solving Captcha]`);
@@ -92,9 +92,7 @@ async function ScanTab({ Tab, ranges: [min, max], CC, response }) {
 		const data = document.querySelector('.datosConsultado');
 		const error = document.querySelector('#ValidationSummary1');
 		return (data && data.innerText.match(`mero ${cc}.`)) || (error && error.innerText);
-	}, {
-		timeout: 20000
-	});
+	}, { timeout: 20000 });
 	const Client = await Page.evaluate(() => {
 		const names = [];
 		const cc = document.querySelector('#txtNumID').value;
@@ -106,14 +104,8 @@ async function ScanTab({ Tab, ranges: [min, max], CC, response }) {
 	});
 
 	console.log("[Client]: ", Client);
-	Cedula.add(CC, Client);
-	await sleep(300);
-	ScanTab({
-		Tab,
-		ranges: [min, max],
-		CC: (CC + 1),
-		response
-	});
+	await Cedula.add(CC, Client);
+	return ScanTab({ Tab, ranges: [min, max], CC: (CC + 1), response });
 }
 
 module.exports = async function Procuraduria(start = 0) {
@@ -129,7 +121,7 @@ module.exports = async function Procuraduria(start = 0) {
 	const Browser = await puppeteer.launch({
 		headless: true,
 		//executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-		slowMo: 250,
+		// slowMo: 250,
 		args: [
 			'--disable-infobars',
 			'--start-maximized',
@@ -143,10 +135,7 @@ module.exports = async function Procuraduria(start = 0) {
 	const Tab = await Browser.newPage();
 	try {
 		console.log("[Loading Page]");
-		await Tab.goto(urlPage, {
-			waitUntil: 'load',
-			timeout: 10000
-		});
+		await Tab.goto(urlPage, { waitUntil: 'load', timeout: 20000 });
 		console.log(Tab.url());
 		return ScanTab({ Tab, ranges, });
 	} catch (error) {
