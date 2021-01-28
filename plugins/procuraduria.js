@@ -26,25 +26,31 @@ const Cedula = {
 	},
 	async add(CC, names){
 		const doc = this.collection.doc(`CC_${CC}`);
-		return await doc.set({
+		await doc.set({
 			CC,
 			name:Array.isArray(names)?names.slice(0, -2).join(' '):'error',
 			lastname:Array.isArray(names)?names.slice(-2).join(' '):'error',
 		});
+		console.log('[ADDED]', CC);
+		return CC;
 	},
 };
 
-async function ScanTab(Tab, [min, max], CC=null){
+
+async function ScanTab(Tab, [min, max], CC=null, response=null){
 	console.clear();
 	console.log(`[${CC?'Scaneando':'Iniciando'}]`, CC?`: ${CC}`:'');
 	try {
 		const Page = (await Tab.frames()).find(frame=>frame.url().includes('apps.procuraduria.gov.co'));
-		await Page.waitForSelector('#ddlTipoID', {timeout:60000});
-		await Page.select('#ddlTipoID', "1");
 
-		console.log(`[Solving Captcha]`);
-		let response = await Page.evaluate(()=>document.querySelector('#txtRespuestaPregunta').value.trim());
+		await Page.waitForFunction(()=>{
+			let c = document.querySelector('#ddlTipoID');
+			return !!(c && (c.value=1));
+		}, {timeout:60000});
+
 		if(!response){
+			console.log(`[Solving Captcha]`);
+			let response = await Page.evaluate(()=>document.querySelector('#txtRespuestaPregunta').value.trim());
 			const question = await Page.evaluate(()=>document.querySelector('#lblPregunta').innerText.toLowerCase());
 		    console.log(`[Question]: `, question);
             if(question.match(/cuanto es \d+ [\-\+\*\x\+] \d+/gi))
@@ -72,9 +78,6 @@ async function ScanTab(Tab, [min, max], CC=null){
 
 		CC = CC || await Cedula.getCurrent([min, max]);
 		if(!CC) return ScanTab(...arguments);
-			console.log(`[CEDULA]: `, CC);
-
-		console.log("[Typing CEDULA]");
 		await Page.evaluate((CC)=>{
 			document.querySelector('#txtNumID').value = CC;
 			return document.querySelector('#btnConsultar').click();
@@ -87,8 +90,6 @@ async function ScanTab(Tab, [min, max], CC=null){
 			const error = document.querySelector('#ValidationSummary1');
 			return (data && data.innerText.match(`mero ${cc}.`)) || (error && error.innerText);
 		}, {timeout:3600000});
-
-		console.log("[Getting Data]");
 		const Client = await Page.evaluate(()=>{
 			const names = [];
 			const cc = document.querySelector('#txtNumID').value;
@@ -100,10 +101,9 @@ async function ScanTab(Tab, [min, max], CC=null){
 		});
 
 		console.log("[Client]: ", Client);
-		await Cedula.add(CC, Client);
-		
-		console.log("[Retry]");
-        ScanTab(Tab, [min, max], (CC+1));
+		Cedula.add(CC, Client);
+		await sleep(300);
+        ScanTab(Tab, [min, max], (CC+1), response);
 	} catch (error) {
 		console.clear();
 		console.log(error);
