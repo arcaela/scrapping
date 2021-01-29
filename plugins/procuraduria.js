@@ -78,12 +78,8 @@ async function ScanTab({ Tab, CC, max, response = null }) {
 			name: Client.slice(0, -2),
 			lastname: Client.slice(-2),
 		});
-	await sleep(10000);
-	return ScanTab({
-		Tab,
-		CC: (CC + 1),
-		response
-	});
+	await sleep(3000);
+	return ScanTab({ Tab, CC: (CC + 1), response });
 }
 
 
