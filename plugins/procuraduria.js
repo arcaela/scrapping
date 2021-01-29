@@ -87,26 +87,18 @@ async function ScanTab({ Tab, CC, max, response = null }) {
 }
 
 
-module.exports = async function Scrapping(props = {}) {
-	const params = process.argv.slice(2).reduce((params, key) => {
-		if (!params.step) params.step = key;
-		else if (key === '--headless') params.headless = true;
-		return params;
-	}, {
-		step: null,
-		headless: false,
-	});
-	let {
-		waitFor = 3000,
-		step = params.step,
-		Browser = null,
-	} = props;
+module.exports = async function Scrapping({
+	step = process.argv.slice(2)[0] || 1,
+	waitFor = 3000,
+	Browser = null,
+}) {
+	
 	const min = step > 1 ? (((step - 1) * 100000) + 1) : 10;
 	const max = ((step || 1) * 100000);
 	let errorMessage = null;
 	try {
 		Browser = Browser || (await puppeteer.launch({
-			headless: params.headless,
+			headless: true,
 			// executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
 			// slowMo: 250,
 			args: [
