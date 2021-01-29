@@ -127,17 +127,18 @@ module.exports = async function Scrapping(props = {}) {
 			.then(({docs}) => (docs.length ? (docs[0].data().CC + 1) : min));
 
 		const urlPage = "https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes";
-			Tab = await Browser.newPage();
+		const Tab = await Browser.newPage();
 		console.log(`[Loading Page For: ${CC}]`);
 		await Tab.goto(urlPage, { waitUntil: 'load', timeout: 30000 });
 			ScanTab({ Tab, CC, max });
 	}
-	catch (error) { errorMessage = error; }
+	catch (error) {
+		errorMessage = error;
+		if (Tab) await Tab.close();
+	}
 	finally {
 		if (errorMessage) {
-			if (waitFor >= 180000)
-				return Browser && Browser.close();
-			else if (Tab) await Tab.close();
+			if (waitFor >= 180000) return Browser && Browser.close();
 			console.log(errorMessage);
 			await sleep(waitFor *= 2);
 			Scrapping({ Browser, step, waitFor, })
