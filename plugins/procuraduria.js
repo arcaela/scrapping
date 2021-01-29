@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer');
 const firebase = require('firebase/app').default;
 const userAgent = require('user-agents');
 require('firebase/firestore');
-const sleep = (time = 1000) => new Promise(r => setTimeout(() => r(time), time));
 firebase.initializeApp({
 	apiKey: "AIzaSyBntYCJH39TRORGUSYpYHHrcg4Etk8Y208",
 	authDomain: "dimelo-vip-col.firebaseapp.com",
@@ -12,45 +11,17 @@ firebase.initializeApp({
 	messagingSenderId: "909520655494",
 	appId: "1:909520655494:web:f1f178d8e564789ea22d07"
 });
-
-const Cedula = {
-	collection: firebase.firestore().collection('CC'),
-	async getCurrent([min, max]) {
-		const snap = await this.collection
-			.where('CC', '>=', min)
-			.where('CC', '<=', max)
-			.orderBy('CC', 'desc')
-			.limit(1).get();
-		const {
-			CC
-		} = snap.docs.length ? snap.docs[0].data() : {
-			CC: null
-		};
-		return CC ? (CC === min ? CC + 1 : (CC < max ? CC : null)) : min;
-	},
-	async add(CC, names) {
-		return this.collection.doc(`CC_${CC}`)
-			.set({
-				CC,
-				name: Array.isArray(names) ? names.slice(0, -2).join(' ') : 'error',
-				lastname: Array.isArray(names) ? names.slice(-2).join(' ') : 'error',
-			}).then(() => console.log('[ADDED]', CC))
-	},
-};
+const sleep = (time = 1000) => new Promise(r => setTimeout(() => r(time), time));
 
 
-async function ScanTab({ Tab, ranges: [min, max], CC, response }) {
+
+async function ScanTab({ Tab, CC, response=null }){
 	console.clear();
 	console.log(`[${CC?'Scaneando':'Iniciando'}]`, CC ? `: ${CC}` : '');
 	const Page = Tab.url().includes('apps.procuraduria.gov.co') ? Tab :
 		(await Tab.frames()).find(frame => frame.url().includes('apps.procuraduria.gov.co'));
-
-	await Page.waitForFunction(() => {
-		let c = document.querySelector('#ddlTipoID');
-		return !!(c && (c.value = 1));
-	}, { timeout: 30000 });
-
-	if (!response) {
+	await Page.waitForSelector('#ddlTipoID', { timeout: 30000 });
+	if(!response){
 		console.log(`[Solving Captcha]`);
 		response = await Page.evaluate(() => document.querySelector('#txtRespuestaPregunta').value.trim());
 		const question = await Page.evaluate(() => document.querySelector('#lblPregunta').innerText.toLowerCase());
@@ -77,12 +48,8 @@ async function ScanTab({ Tab, ranges: [min, max], CC, response }) {
 		console.log(response);
 		console.log(`#############################`);
 	}
-
-	if (!CC) {
-		CC = await Cedula.getCurrent([min, max]);
-		if (!CC) return ScanTab(...arguments);
-	}
 	await Page.evaluate((CC) => {
+		document.querySelector('#ddlTipoID').value = 1;
 		document.querySelector('#txtNumID').value = CC;
 		return document.querySelector('#btnConsultar').click();
 	}, CC);
@@ -100,46 +67,73 @@ async function ScanTab({ Tab, ranges: [min, max], CC, response }) {
 		const error = document.querySelector('#ValidationSummary1');
 		if (((data || {}).innerText || 'ALEJANDRO').match(`mero ${cc}.`))
 			data.querySelectorAll('span').forEach(span => names.push(span.innerText))
-		return names.length ? names : (error ? error.innerText : 'error');
+		return names.length ? names : (error ? null : null);
 	});
-
 	console.log("[Client]: ", Client);
-	await Cedula.add(CC, Client);
-	return ScanTab({ Tab, ranges: [min, max], CC: (CC + 1), response });
+	if(Client)
+		await firebase.firestore().collection('CC').doc(`CC_${CC}`).set({
+			CC,
+			name:Client.slice(0, -2),
+			lastname:Client.slice(-2),
+		});
+	await sleep(10000);
+	return ScanTab({ Tab, CC:(CC+1), response});
 }
 
-module.exports = async function Procuraduria(start = 0) {
-	const urlPage = ([
-		"https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes",
-		// "https://apps.procuraduria.gov.co/webcert/Certificado.aspx?t=dAylAkFT/gSkkvpDoI89aORiq2C8LI3z9uHAnBFaF08/32nPrGQhH4HhIkyJHgMD30HMssetl++9IEpDNKzjND4pdXe1O32FMNcfM+GGb6NipvVlkwZR+ZjqHUuiB4weW8T9vSbEQL83gQVd8FjpjcqL5XBvjk89PEX8tf3eHevJgIDWDAm6iWRPb4HhiOqcXmsk2ZIc7yC+GyawwedNX5gP8L9zSe+C&tpo=1",
-	]).sort(() => Math.random() - 0.5)[0];
-	const params = process.argv.slice(2);
-	const step = (params[0] - 1) || start || 0;
-	const max = 100000;
-	const ranges = [step === 0 ? 10 : (step * max) + 1, (step + 1) * max, ];
-	console.log("[Launch Browser]");
-	const Browser = await puppeteer.launch({
-		headless: true,
-		//executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-		// slowMo: 250,
-		args: [
-			'--disable-infobars',
-			'--start-maximized',
-			'--no-sandbox',
-			'--disable-dev-shm-usage',
-			"--disable-web-security",
-			'--disable-features=IsolateOrigins,site-per-process',
-			'--user-agent="' + (new userAgent()).toString() + '"',
-		]
+
+module.exports = async function Scrapping(props={}){
+	const params = process.argv.slice(2).reduce((params, key)=>{
+		if(!params.step) params.step=key;
+		else if(key==='--headless') params.headless=true;
+		return params;
+	},{
+		step:null,
+		headless:false,
 	});
-	const Tab = await Browser.newPage();
+
+	const {
+		waitFor=3000,
+		step = params.step,
+		Browser = (await puppeteer.launch({
+			headless: params.headless,
+			executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
+			// slowMo: 250,
+			args: [
+				'--disable-infobars',
+				'--start-maximized',
+				'--no-sandbox',
+				'--disable-dev-shm-usage',
+				"--disable-web-security",
+				'--disable-features=IsolateOrigins,site-per-process',
+				'--user-agent="' + (new userAgent()).toString() + '"',
+			]
+		})),
+	} = props;
+	const min = step>1?(((step-1)*100000)+1):10;
+	const max = ((step || 1)*100000);
+	let errorMessage = null;
+
+	const CC = await firebase.firestore().collection('CC')
+		.where('CC', '>=', min)
+		.where('CC', '<=', max)
+		.orderBy('CC', 'desc').get()
+		.then(({ docs })=>(docs.length?(docs[0].data().CC+1):min));
+	
+	const urlPage = "https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes";
 	try {
-		console.log("[Loading Page]");
-		await Tab.goto(urlPage, { waitUntil: 'load', timeout: 20000 });
-		console.log(Tab.url());
-		return ScanTab({ Tab, ranges, });
-	} catch (error) {
-		await Browser.close();
-		return Procuraduria(step);
+		Tab = await Browser.newPage();
+		console.log(`[Loading Page For: ${CC}]`);
+		await Tab.goto(urlPage, { waitUntil: 'load', timeout: 30000 });
+		ScanTab({ Tab, CC, });
+	}
+	catch (error) { errorMessage=error; }
+	finally {
+		if(errorMessage){
+			if(Tab) await Tab.close();
+			console.log(errorMessage);
+			await sleep(waitFor *= 2);
+			if(waitFor >= 180000) return Browser && Browser.close();
+			Scrapping({Browser, step, waitFor,})
+		}
 	}
 };
