@@ -96,7 +96,7 @@ module.exports = async function Scrapping(props = {}) {
 		step: null,
 		headless: false,
 	});
-	const {
+	let {
 		waitFor = 3000,
 		step = params.step,
 		Browser = null,
