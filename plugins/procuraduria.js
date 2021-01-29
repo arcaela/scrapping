@@ -107,7 +107,7 @@ module.exports = async function Scrapping(props = {}) {
 	try {
 		Browser = Browser || (await puppeteer.launch({
 			headless: params.headless,
-			executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+			// executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
 			// slowMo: 250,
 			args: [
 				'--disable-infobars',
