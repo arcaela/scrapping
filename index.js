@@ -1,6 +1,7 @@
 const Procuraduria = require('./plugins/procuraduria');
 
 
-module.exports = (async ()=>{
+
+(async function Scrapping(){
 	Procuraduria({});
 })();
