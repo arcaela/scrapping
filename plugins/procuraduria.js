@@ -11,17 +11,18 @@ firebase.initializeApp({
 	messagingSenderId: "909520655494",
 	appId: "1:909520655494:web:f1f178d8e564789ea22d07"
 });
-const sleep = (time = 1000) => new Promise(r => setTimeout(() => r(time), time));
+const sleep = (time = 1000) => new Promise(resolve => setTimeout(() => resolve(time), time));
 
 
 
-async function ScanTab({ Tab, CC, response=null }){
+async function ScanTab({ Tab, CC, max, response = null }) {
+	if(CC > max) return process.close();
 	console.clear();
-	console.log(`[${CC?'Scaneando':'Iniciando'}]`, CC ? `: ${CC}` : '');
+	console.log(`[Scaneando: ${CC}]`);
 	const Page = Tab.url().includes('apps.procuraduria.gov.co') ? Tab :
 		(await Tab.frames()).find(frame => frame.url().includes('apps.procuraduria.gov.co'));
-	await Page.waitForSelector('#ddlTipoID', { timeout: 30000 });
-	if(!response){
+	await Page.waitForSelector('#ddlTipoID', {visible:true, timeout: 30000});
+	if (!response) {
 		console.log(`[Solving Captcha]`);
 		response = await Page.evaluate(() => document.querySelector('#txtRespuestaPregunta').value.trim());
 		const question = await Page.evaluate(() => document.querySelector('#lblPregunta').innerText.toLowerCase());
@@ -39,14 +40,14 @@ async function ScanTab({ Tab, CC, response=null }){
 			);
 		}
 		if (Boolean(response))
-			await Page.evaluate((value) => document.querySelector('#txtRespuestaPregunta').value = value, response);
+			await Page.evaluate((value) => document.querySelector('#txtRespuestaPregunta').value=value, response);
 		else {
 			await Page.click('#ImageButton1');
 			await sleep(2000);
 			return ScanTab(...arguments);
 		}
 		console.log(response);
-		console.log(`#############################`);
+		console.log(`#############`);
 	}
 	await Page.evaluate((CC) => {
 		document.querySelector('#ddlTipoID').value = 1;
@@ -60,6 +61,7 @@ async function ScanTab({ Tab, CC, response=null }){
 		const error = document.querySelector('#ValidationSummary1');
 		return (data && data.innerText.match(`mero ${cc}.`)) || (error && error.innerText);
 	}, { timeout: 20000 });
+
 	const Client = await Page.evaluate(() => {
 		const names = [];
 		const cc = document.querySelector('#txtNumID').value;
@@ -70,33 +72,42 @@ async function ScanTab({ Tab, CC, response=null }){
 		return names.length ? names : (error ? null : null);
 	});
 	console.log("[Client]: ", Client);
-	if(Client)
+	if (Client)
 		await firebase.firestore().collection('CC').doc(`CC_${CC}`).set({
 			CC,
-			name:Client.slice(0, -2),
-			lastname:Client.slice(-2),
+			name: Client.slice(0, -2),
+			lastname: Client.slice(-2),
 		});
 	await sleep(10000);
-	return ScanTab({ Tab, CC:(CC+1), response});
+	return ScanTab({
+		Tab,
+		CC: (CC + 1),
+		response
+	});
 }
 
 
-module.exports = async function Scrapping(props={}){
-	const params = process.argv.slice(2).reduce((params, key)=>{
-		if(!params.step) params.step=key;
-		else if(key==='--headless') params.headless=true;
+module.exports = async function Scrapping(props = {}) {
+	const params = process.argv.slice(2).reduce((params, key) => {
+		if (!params.step) params.step = key;
+		else if (key === '--headless') params.headless = true;
 		return params;
-	},{
-		step:null,
-		headless:false,
+	}, {
+		step: null,
+		headless: false,
 	});
-
 	const {
-		waitFor=3000,
+		waitFor = 3000,
 		step = params.step,
-		Browser = (await puppeteer.launch({
+		Browser = null,
+	} = props;
+	const min = step > 1 ? (((step - 1) * 100000) + 1) : 10;
+	const max = ((step || 1) * 100000);
+	let errorMessage = null;
+	try {
+		Browser = Browser || (await puppeteer.launch({
 			headless: params.headless,
-			executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
+			executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
 			// slowMo: 250,
 			args: [
 				'--disable-infobars',
@@ -107,33 +118,29 @@ module.exports = async function Scrapping(props={}){
 				'--disable-features=IsolateOrigins,site-per-process',
 				'--user-agent="' + (new userAgent()).toString() + '"',
 			]
-		})),
-	} = props;
-	const min = step>1?(((step-1)*100000)+1):10;
-	const max = ((step || 1)*100000);
-	let errorMessage = null;
+		}));
 
-	const CC = await firebase.firestore().collection('CC')
-		.where('CC', '>=', min)
-		.where('CC', '<=', max)
-		.orderBy('CC', 'desc').get()
-		.then(({ docs })=>(docs.length?(docs[0].data().CC+1):min));
-	
-	const urlPage = "https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes";
-	try {
-		Tab = await Browser.newPage();
+		const CC = await firebase.firestore().collection('CC')
+			.where('CC', '>=', min)
+			.where('CC', '<=', max)
+			.orderBy('CC', 'desc').limit(1).get()
+			.then(({docs}) => (docs.length ? (docs[0].data().CC + 1) : min));
+
+		const urlPage = "https://www.procuraduria.gov.co/portal/index.jsp?option=co.gov.pgn.portal.frontend.component.pagefactory.AntecedentesComponentPageFactory&action=consultar_antecedentes";
+			Tab = await Browser.newPage();
 		console.log(`[Loading Page For: ${CC}]`);
 		await Tab.goto(urlPage, { waitUntil: 'load', timeout: 30000 });
-		ScanTab({ Tab, CC, });
+			ScanTab({ Tab, CC, max });
 	}
-	catch (error) { errorMessage=error; }
+	catch (error) { errorMessage = error; }
 	finally {
-		if(errorMessage){
-			if(Tab) await Tab.close();
+		if (errorMessage) {
+			if (waitFor >= 180000)
+				return Browser && Browser.close();
+			else if (Tab) await Tab.close();
 			console.log(errorMessage);
 			await sleep(waitFor *= 2);
-			if(waitFor >= 180000) return Browser && Browser.close();
-			Scrapping({Browser, step, waitFor,})
+			Scrapping({ Browser, step, waitFor, })
 		}
 	}
 };
