@@ -34,6 +34,7 @@ async function ScanTab({ CC, Browser, waitFor=3000, Tab, response, error}){
 		Tab = await Browser.newPage();
 		await Tab.goto(url ,{ waitUntil:'load', timeout:30000 });
 	}
+	console.log('[Scaning...] ', CC);
 	const Page = Tab.url().includes('apps.procuraduria.gov.co') ? Tab :
 		(await Tab.frames()).find(frame => frame.url().includes('apps.procuraduria.gov.co'));
 	await Page.waitForFunction(()=>{
