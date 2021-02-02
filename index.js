@@ -85,10 +85,10 @@ async function ScanTab({ Tab, CC, max, }) {
 				lastname: Client.slice(-2),
 			});
 		await sleep(3000);
-		await ScanTab({ Tab, CC: (CC + 1), response });
+		return ScanTab({ Tab, CC: (CC + 1) });
 	}
 	catch (error) {}
-	finally { await process.exit("Finalizado"); }
+	finally { return ScanTab(...arguments); }
 }
 
 
@@ -125,15 +125,15 @@ module.exports = (async function Scrapping({
 		const Tab = await Browser.newPage();
 		console.log(`[Loading Page For: ${CC}]`);
 		await Tab.goto(url, { waitUntil:'load', timeout:30000 });
-		await ScanTab({ Tab, CC, max });
+		return ScanTab({ Tab, CC, max });
 	}
 	catch (error) { errorMessage = error; }
 	finally {
 		if(Browser) await Browser.close();
 		if (errorMessage) {
 			console.log(errorMessage);
-			// if (waitFor >= 180000)
-				// return process.exit(errorMessage);
+			if (waitFor >= 180000)
+				return process.exit(errorMessage);
 			await sleep(waitFor *= 2);
 			return Scrapping({ waitFor, length, step, })
 		}
