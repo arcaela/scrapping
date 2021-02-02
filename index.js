@@ -138,4 +138,4 @@ module.exports = (async function Scrapping({
 			await Scrapping({ waitFor, length, step, })
 		}
 	}
-})();
+})({});
