@@ -121,7 +121,7 @@ async function Scrapping({ waitFor = 3000, length = 100000, step = process.argv.
 	let Browser = null,
 		errorMessage = null;
 	const max = ((step || 1) * length),
-		min = step > 1 ? (((step - 1) * length) + 1) : 10,
+		min = step > 1 ? (((step - 1) * length) + 1) : 10;
 	try {
 		const CC = await getCedula(min, max);
 		if(CC > max) process.exit(200);
