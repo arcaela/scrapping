@@ -132,10 +132,10 @@ module.exports = (async function Scrapping({
 		if(Browser) await Browser.close();
 		if (errorMessage) {
 			console.log(errorMessage);
-			if (waitFor >= 180000)
-				return process.exit(errorMessage);
+			// if (waitFor >= 180000)
+				// return process.exit(errorMessage);
 			await sleep(waitFor *= 2);
-			await Scrapping({ waitFor, length, step, })
+			return Scrapping({ waitFor, length, step, })
 		}
 	}
 })({});
