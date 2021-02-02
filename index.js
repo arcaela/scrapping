@@ -92,7 +92,7 @@ async function ScanTab({ Tab, CC, max, }) {
 }
 
 
-module.exports = async function Scrapping({
+module.exports = (async function Scrapping({
 	waitFor = 3000,
 	length = 100000,
 	step = process.argv.slice(2)[0] || 1,
@@ -138,4 +138,4 @@ module.exports = async function Scrapping({
 			await Scrapping({ waitFor, length, step, })
 		}
 	}
-};
+})();
