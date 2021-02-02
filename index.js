@@ -110,7 +110,10 @@ async function ScanTab({ CC, waitFor=3000, Tab=null, Browser=null, response=null
 			await sleep(waitFor *= 2);
 			return ScanTab({ CC, waitFor:3000, Browser,});
 		}
-		else process.exit(200);
+		else{
+			console.log(error);
+			process.exit(200);
+		}
 	}
 }
 
@@ -141,7 +144,10 @@ async function Scrapping({ waitFor = 3000, length = 100000, step = process.argv.
 		});
 		return ScanTab({ CC, Browser, });
 	}
-	catch (error) { errorMessage=error; }
+	catch (error) {
+		console.log(error);
+	
+	}
 	finally {
 		if(errorMessage){
 			if(Browser) await Browser.close();
