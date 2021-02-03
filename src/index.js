@@ -19,10 +19,6 @@ async function Scrapper({ CC, step, length=100000, waitFor=3000, }){
 	let errorMessage=null;
 	try {
 		CC = CC || await getCedula(min, max);
-
-
-
-		closeConnection( "Close For "+CC );
 		if(CC > max) closeConnection("Se ha culminado la consulta para estos rangos");
 		// const Client = await Plugins[0](CC);
 		const Client = await Plugins.sort(()=>Math.random()-0.5)[0](CC);

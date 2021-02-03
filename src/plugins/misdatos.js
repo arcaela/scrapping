@@ -6,14 +6,14 @@ module.exports = async function MisDatos(CC){
 	if(!Browser || !Tab) return await MisDatos(CC);
     const Page = Tab;
     await Page.evaluate(()=>{
-        await document.querySelectorAll('body > *').forEach(el=>{
+        document.querySelectorAll('body > *').forEach(el=>{
             if(!el.matches('script') || !el.src.includes('helpers.js'))
                 el.remove();
         });
     });
     Log('[Scaning...] ');
     const Client = await Page.evaluate((cedula)=>{
-        return new Promise((send, error)=>{
+        return new Promise((send)=>{
             $.ajax({
                 type:'POST',
                 url:'/app/names',
