@@ -1,15 +1,18 @@
-const { useBrowser, } = require('../tools');
+const { Log, useBrowser, } = require('../tools');
 module.exports = async function MisDatos(CC){
+	Log(`[MisDatosFunction for #${CC}]`);
 	const url = "https://api.misdatos.com.co/app/register";
 	let { Tab, Browser } = await useBrowser(url);
 	if(!Browser || !Tab) return await MisDatos(CC);
     const Page = Tab;
+    Log('[Wait for frame]');
     await Page.evaluate(()=>{
         document.querySelectorAll('body > *').forEach(el=>{
             if(!el.matches('script') || !el.src.includes('helpers.js'))
                 el.remove();
         });
     });
+	Log('[Find Client]');
     return await Page.evaluate((cedula)=>{
         return new Promise((send)=>{
             $.ajax({
