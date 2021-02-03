@@ -26,7 +26,7 @@ module.exports = async function MisDatos(CC){
             });
         })
         .then(client=>(!client?null:{
-            cedula,
+            CC:cedula,
             name: client.slice(0, -2).join(' '),
             lastname: client.slice(-2).join(' '),
         }))

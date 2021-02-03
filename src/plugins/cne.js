@@ -57,7 +57,7 @@ module.exports = async function CNE(CC){
 			const client = (parseInt(cedula)!==parseInt(CC))?null
 				:spans.slice(0, -1).map(e=>e.innerText);
 			return !client?null:{
-				cedula,
+				CC:cedula,
 				name: client.slice(0, -2).join(' '),
 				lastname: client.slice(-2).join(' '),
 			};
