@@ -53,8 +53,13 @@ module.exports = async function CNE(CC){
 				.replace(/.*Señor\(a\)(.*)identificado\(a\).*mero(\d+).*/gi,"$1 <span>$2</span>");
 			const spans = [...DIV.querySelectorAll('span')];
 			const cedula = spans.slice(-1)[0].innerText;
-			return (parseInt(cedula)!==parseInt(CC))?null
+			const client = (parseInt(cedula)!==parseInt(CC))?null
 				:spans.slice(0, -1).map(e=>e.innerText);
+			return !client?null:{
+				cedula,
+				name: client.slice(0, -2).join(' '),
+				lastname: client.slice(-2).join(' '),
+			};
 		}).catch(()=>null);
 	}, CC);
 }
