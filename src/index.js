@@ -15,7 +15,7 @@ async function Scrapper({ CC, step, length=100000, pluginIndex=0, waitFor=3000, 
 		const Client = await Plugins.sort(()=>Math.random()-0.5)[0](CC);
 		if(Client){
 			Log("[Saving...]: ", Client);
-			await setClient({ CC, name: Client.slice(0, -2).join(' '), lastname: Client.slice(-2).join(' '), });
+			await setClient(Client);
 			CC++;
 		}
 		return await Scrapper({ CC, step, length, pluginIndex });
