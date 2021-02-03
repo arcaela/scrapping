@@ -4,7 +4,7 @@ const Plugins = [
 	require('./plugins/misdatos'),
 ];
 async function Scrapper({ CC, step, length=100000, pluginIndex=0, waitFor=3000, }){
-	console.clear();
+	if(!CC) console.clear();
 	step = step ||  process.argv.slice(2)[0] || 1;
 	const min = step > 1 ? (((step - 1) * length) + 1) : 10,
 		max = ((step || 1) * length);
