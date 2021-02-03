@@ -1,3 +1,5 @@
+const puppeteer = require('puppeteer');
+const userAgent = require('user-agents');
 const firebase = require('firebase/app').default;
 require('firebase/firestore');
 firebase.initializeApp({
@@ -20,4 +22,34 @@ module.exports.sleep = (time = 1000) => new Promise(resolve => setTimeout(() => 
 module.exports.getCedula = (min, max)=>firebase.firestore().collection('CC').where('CC', '>=', min).where('CC', '<=', max).orderBy('CC','desc').limit(1).get().then(({ docs })=>{
 	return !docs.length?min:(docs[0].data().CC+1);
 });
-module.exports.saveClient = (client)=>firebase.firestore().collection('CC').doc(`CC_${client.CC}`).set(client);
+module.exports.setClient = (client)=>firebase.firestore().collection('CC').doc(`CC_${client.CC}`).set(client);
+
+
+module.exports.$Browser = null;
+module.exports.useBrowser = async (url)=>{
+	if(!this.$Browser){
+		this.Log("[Opening Browser...]");
+		this.$Browser = await puppeteer.launch({
+			// slowMo: 250,
+			// executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+			headless: true,
+			args: [
+				'--disable-infobars',
+				'--start-maximized',
+				'--no-sandbox',
+				'--disable-dev-shm-usage',
+				"--disable-web-security",
+				'--disable-features=IsolateOrigins,site-per-process',
+				'--user-agent="' + (new userAgent()).toString() + '"',
+			]
+		});
+	}
+	let Tab =  await (await this.$Browser.pages()).find(tab=>tab.url()===url);
+	if(!Tab) {
+		this.Log("[Going to: ]", url)
+		Tab = await this.$Browser.newPage();
+		await Tab.goto(url, { waitUntil:'load', timeout:30000 });
+	}
+	await Tab.bringToFront();
+	return { Tab, Browser:this.$Browser };
+};
