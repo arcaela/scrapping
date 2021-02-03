@@ -8,7 +8,8 @@ module.exports = async function CNE(CC){
 		return await CNE(CC);
 	}
 	Log('[Wait for frame]');
-	const Page = (await Tab.frames()).find(frame => frame.url().includes('apps.procuraduria.gov.co'));
+	// const Page = (await Tab.frames()).find(frame => frame.url().includes('apps.procuraduria.gov.co'));
+	const Page = await Tab;
 	Log('[Find Client]');
 	return await Page.evaluate(async (CC)=>{
 		return await fetch("https://apps.procuraduria.gov.co/webcert/Certificado.aspx?t=dAylAkFT%2fgSkkvpDoI89aORiq2C8LI3z9uHAnBFaF08%2f32nPrGQhH4HhIkyJHgMD30HMssetl+9PJ%2fyzlIxsGulvW%2fnaIvG4+zaUOoCBXX9ipvVlkwZR+ZjqHUuiB4weW8T9vSbEQL83gQVd8FjpjcqL5XBvjk89PEX8tf3eHevJgIDWDAm6iWRPb4HhiOqcXmsk2ZIc7yC+GyawwedNX5gP8L9zSe+C&tpo=1",{
