@@ -32,7 +32,8 @@ module.exports.useBrowser = async (url)=>{
 		this.$Browser = await puppeteer.launch({
 			// slowMo: 250,
 			// executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-			headless: true,
+			devtools:true,
+			headless: !true,
 			args: [
 				'--disable-infobars',
 				'--start-maximized',
