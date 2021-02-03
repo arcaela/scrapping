@@ -35,6 +35,12 @@ module.exports.useBrowser = async (url)=>{
 			// devtools:true,
 			headless:true,
 			args: [
+				'--disable-setuid-sandbox',
+				'--disable-accelerated-2d-canvas',
+				'--no-first-run',
+				'--no-zygote',
+				'--single-process', // <- this one doesn't works in Windows
+				'--disable-gpu',
 				'--disable-infobars',
 				'--start-maximized',
 				'--no-sandbox',
@@ -49,6 +55,12 @@ module.exports.useBrowser = async (url)=>{
 	if(!Tab) {
 		this.Log("[Going to: ]", url)
 		Tab = await this.$Browser.newPage();
+		await Tab.setRequestInterception(true);
+		Tab.on('request', request => {
+			if ((['stylesheet', 'image', 'media', 'font', 'texttrack', 'websocket', 'manifest',])
+				.indexOf(request.resourceType())>=0) request.abort();
+			else request.continue();
+		});
 		await Tab.goto(url, { waitUntil:'load', timeout:30000 });
 	}
 	await Tab.bringToFront();
