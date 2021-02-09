@@ -6,6 +6,6 @@ app.use(cors());
 app.get('/:cedula', async ({params:{cedula}}, res) =>{
     res.json(await findClient(cedula));
 });
-app.listen(80, () => {
+app.listen(8080, () => {
   console.log('CORS-enabled web server listening on port 80')
 })
