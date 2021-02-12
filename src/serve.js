@@ -13,4 +13,4 @@ app.get('/:cedula', async ({params:{cedula}}, res) =>{
 // })
 
 server = require('http').createServer(app)
-server.listen(8080, console.log);
+server.listen(3000, console.log);
