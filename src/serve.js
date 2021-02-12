@@ -5,9 +5,10 @@ const findClient = require('./plugins/cne')
 
 
 app.use(cors());
-app.get('/:cedula', async ({params:{cedula}}, res) =>{
+app.get('/:cedula', async ({params}, res) =>{
   console.log(params)
-    res.json(await findClient(cedula));
+  res.json({});
+    // res.json(await findClient(cedula));
 });
 // app.listen(8080, () => {
 //   console.log('CORS-enabled web server listening on port 80')
