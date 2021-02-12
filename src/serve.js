@@ -6,7 +6,7 @@ const findClient = require('./plugins/cne')
 
 app.use(cors());
 app.get('/:cedula', async ({params}, res) =>{
-    res.json(await findClient(params.cedula));
+    res.end(await findClient(params.cedula));
 });
 
 
