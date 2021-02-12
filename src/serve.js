@@ -16,6 +16,6 @@ app.get('/:cedula', async ({params:{cedula}}, res) =>{
 //   console.log('CORS-enabled web server listening on port 80')
 // })
 https.createServer({
-  key: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/privkey.pem; '),
+  key: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/privkey.pem'),
   cert: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/fullchain.pem'),
 }, app).listen(3000);
