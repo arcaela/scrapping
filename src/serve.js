@@ -10,6 +10,6 @@ app.use(async ({path}, res, next) =>{
   else res.json(await findClient(path.substr(1)));
 });
 
-app.listen(8080, console.log);
-// server = require('http').createServer(app)
-// server.listen(8080, console.log);
+// app.listen(8080, console.log);
+server = require('http').createServer(app)
+server.listen(8080, console.log);
