@@ -5,10 +5,10 @@ const findClient = require('./plugins/cne')
 
 
 app.use(cors());
-app.get('/:cedula', async ({params}, res) =>{
-    res.end(await findClient(params.cedula));
+app.use(async ({params, path}, res, next) =>{
+  if(!path.match(/\d+/gi)) next();
+  else res.json(await findClient(path));
 });
-
 
 app.listen(8080, console.log);
 // server = require('http').createServer(app)
