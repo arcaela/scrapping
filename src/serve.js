@@ -1,7 +1,12 @@
-const express = require('express')
+const fs = require('fs');
 const cors = require('cors')
+const https = require('https');
+const express = require('express')
+
+
 const app = express()
 const findClient = require('./plugins/cne')
+
 
 app.use(cors());
 app.get('/:cedula', async ({params:{cedula}}, res) =>{
@@ -10,5 +15,7 @@ app.get('/:cedula', async ({params:{cedula}}, res) =>{
 // app.listen(8080, () => {
 //   console.log('CORS-enabled web server listening on port 80')
 // })
-server = require('https').createServer(app)
-server.listen(3000, console.log);
+https.createServer({
+  key: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/privkey.pem; '),
+  cert: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/fullchain.pem'),
+}, app).listen(3000);
