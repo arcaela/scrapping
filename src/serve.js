@@ -6,10 +6,8 @@ const findClient = require('./plugins/cne')
 
 app.use(cors());
 app.use(async ({path}, res, next) =>{
-
-  console.log(path)
   if(!path.match(/\d+/gi)) next();
-  else res.json(await findClient(path));
+  else res.json(await findClient(path.substr(1)));
 });
 
 app.listen(8080, console.log);
