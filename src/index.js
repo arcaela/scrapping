@@ -9,7 +9,7 @@ module.exports = async function Scrapper({ cedula, plugin=0, waitFor=3000, }){
 	try {
 		const client = await Plugins[0](cedula);
 		if(client){
-			Log('[Found: ] ', Client);
+			Log('[Found: ] ', client);
 			return client;
 		}
 		else return await Scrapper({ cedula, plugin:(plugin>0?0:1), waitFor:3000 });
