@@ -10,7 +10,7 @@ const app = express()
 app.use(cors());
 app.get('/:cedula', async ({params:{cedula}}, res) =>{
   res.json(
-    await require('./index')({ CC:cedula })
+    await require('./index')({ cedula })
   );
 });
 
