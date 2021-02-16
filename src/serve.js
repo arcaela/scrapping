@@ -17,6 +17,6 @@ app.get('/:cedula', async ({params:{cedula}}, res) =>{
 
 
 https.createServer({
-  key: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/aurorajs.ml/fullchain.pem'),
+  key: fs.readFileSync('/etc/letsencrypt/live/api-dimelo.ml/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/api-dimelo.ml/fullchain.pem'),
 }, app).listen(3000);
