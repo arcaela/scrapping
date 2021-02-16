@@ -1,4 +1,4 @@
-const { useBrowser, } = require('../tools');
+const { useBrowser,Log } = require('../tools');
 
 
 module.exports = async function CNE(CC){
