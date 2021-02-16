@@ -11,7 +11,7 @@ app.use(cors());
 app.get('/:cedula', async ({params:{cedula}}, res) =>{
   if(cedula.match(/^\d+$/))
     res.json( await require('./index')({ cedula }) );
-  else res.end({});
+  else res.end("");
 });
 
 
