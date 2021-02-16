@@ -33,7 +33,7 @@ module.exports = async function CNE(CC){
 		else {
 			await Page.evaluate(()=>document.querySelector('#ddlTipoID').remove());
 			await Page.click('#ImageButton1');
-			return findClient({ Browser, Tab, CC });
+			return CNE(CC);
 		}
 	}
 
