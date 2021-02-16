@@ -1,42 +1,29 @@
-const { Log, sleep, getCedula, closeConnection, setClient, } = require('./tools');
+const { Log, sleep, } = require('./tools');
 const Plugins = [
 	require('./plugins/cne'),
 	require('./plugins/misdatos'),
 ];
-async function Scrapper({ CC, step, length=100000, pluginIndex=0, waitFor=3000, }){
-	if(!CC) console.clear();
-	step = step ||  process.argv.slice(2)[0] || 1;
-	const min = step > 1 ? (((step - 1) * length) + 1) : 10,
-		max = ((step || 1) * length);
+module.exports = async function Scrapper({ cedula, plugin=0, waitFor=3000, }){
+	console.clear();
 	let errorMessage=null;
 	try {
-		CC = CC || await getCedula(min, max);
-		if(CC > max) closeConnection("Se ha culminado la consulta para estos rangos");
-		const Client = await Plugins.sort(()=>Math.random()-0.5)[0](CC);
-		if(Client){
-			Log("[Saving...]: ", Client);
-			await setClient(Client);
-			CC++;
+		const client = await Plugins[0](cedula);
+		if(client){
+			Log('[Found: ] ', Client);
+			return client;
 		}
-		return await Scrapper({ CC, step, length, pluginIndex });
+		else return await Scrapper({ cedula, plugin:(plugin>0?0:1), waitFor:3000 });
 	}
 	catch (error) { errorMessage=error; }
 	finally {
 		if(errorMessage){
 			Log(errorMessage);
-			waitFor = waitFor>=180000?180000:waitFor;
-			Log(`Sleep for: ${waitFor/1000} seconds`);
-			await sleep(waitFor);
-			Log('[Retry Scrapper]');
-			return await Scrapper({
-				CC,
-				step,
-				length,
-				pluginIndex:pluginIndex==0?1:0,
-				waitFor:waitFor<180000?waitFor:3000,
-			});
+			if (plugin>=1) return null;
+			else {
+				Log(`Sleep for: ${(waitFor *= 2) / 1000} seconds`);
+				await sleep(waitFor);
+			}
+			return await Scrapper({ CC, step, length, waitFor, });
 		}
-		else closeConnection("Se ha completado la ejecución del código");
 	}
 }
-module.exports = Scrapper({});

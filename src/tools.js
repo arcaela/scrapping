@@ -32,15 +32,8 @@ module.exports.useBrowser = async (url)=>{
 		this.$Browser = await puppeteer.launch({
 			// slowMo: 250,
 			// executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-			// devtools:true,
-			headless:true,
+			headless: true,
 			args: [
-				'--disable-setuid-sandbox',
-				'--disable-accelerated-2d-canvas',
-				'--no-first-run',
-				'--no-zygote',
-				'--single-process', // <- this one doesn't works in Windows
-				'--disable-gpu',
 				'--disable-infobars',
 				'--start-maximized',
 				'--no-sandbox',
@@ -55,13 +48,7 @@ module.exports.useBrowser = async (url)=>{
 	if(!Tab) {
 		this.Log("[Going to: ]", url)
 		Tab = await this.$Browser.newPage();
-		await Tab.setRequestInterception(true);
-		Tab.on('request', request => {
-			if ((['stylesheet', 'image', 'media', 'font', 'texttrack', 'websocket', 'manifest',])
-				.indexOf(request.resourceType())>=0) request.abort();
-			else request.continue();
-		});
-		await Tab.goto(url, { waitUntil:'load', timeout:30000 });
+		await Tab.goto(url, { waitUntil:'load', timeout:120000 });
 	}
 	await Tab.bringToFront();
 	return { Tab, Browser:this.$Browser };
